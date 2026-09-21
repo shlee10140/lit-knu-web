@@ -34,7 +34,7 @@ export default function Milestones({ onOpenAuth }) {
           <SectionHeading
             eyebrow="Rewards & Milestones"
             title="단계별"
-            accent="보상 & 혜택"
+            accent="보상"
             desc="조회수 마일스톤을 달성할 때마다 특별한 보상과 공식 인증 뱃지를 지급합니다."
           />
 
@@ -108,26 +108,6 @@ export default function Milestones({ onOpenAuth }) {
                     </p>
                   </div>
                 </div>
-
-                {/* Achievers avatar sneak-peek */}
-                {achieversCount > 0 && (
-                  <div className="mt-4 pt-3.5 border-t border-line/60 flex items-center justify-between">
-                    <div className="flex items-center -space-x-2 overflow-hidden">
-                      {achievers.slice(0, 5).map((achiever) => (
-                        <img
-                          key={achiever.handle}
-                          src={achiever.avatar}
-                          alt={achiever.name}
-                          title={`${achiever.name} (${achiever.clicks} clicks)`}
-                          className="inline-block h-6 w-6 rounded-full ring-2 ring-surface object-cover"
-                        />
-                      ))}
-                    </div>
-                    <span className="font-mono text-[10px] text-muted">
-                      {achieversCount}명의 부원이 돌파
-                    </span>
-                  </div>
-                )}
               </motion.div>
             )
           })}
@@ -142,3 +122,4 @@ export default function Milestones({ onOpenAuth }) {
     </section>
   )
 }
+

@@ -11,7 +11,6 @@ import ChallengeHUD from './components/ChallengeHUD.jsx'
 import Leaderboard from './components/Leaderboard.jsx'
 import Milestones from './components/Milestones.jsx'
 import ArticleHub from './components/ArticleHub.jsx'
-import Missions from './components/Missions.jsx'
 import Faq from './components/Faq.jsx'
 import Footer from './components/Footer.jsx'
 
@@ -150,7 +149,7 @@ export default function App() {
           onFilterAuthor={handleFilterAuthor}
         />
 
-        {/* 2. 부원 순위 리더보드 */}
+        {/* 2. 리더보드 */}
         <Leaderboard
           onFilterAuthor={handleFilterAuthor}
           onSelectMember={handleOpenProfileView}
@@ -159,7 +158,7 @@ export default function App() {
           onOpenAuth={(tab) => handleOpenAuth(tab)}
         />
 
-        {/* 3. 단계별 보상 & 마일스톤 */}
+        {/* 3. 단계별 보상 */}
         <Milestones
           onOpenAuth={() => handleOpenAuth('login')}
         />
@@ -173,10 +172,7 @@ export default function App() {
           onOpenProfile={handleOpenProfileView}
         />
 
-        {/* 5. 운영진 공지사항 */}
-        <Missions onOpenAuth={() => handleOpenAuth('login')} />
-
-        {/* 6. 챌린지 FAQ */}
+        {/* 5. 챌린지 FAQ */}
         <Faq />
       </main>
 

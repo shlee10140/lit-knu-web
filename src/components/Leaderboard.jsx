@@ -66,8 +66,8 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onOpenProf
         <SectionHeading
           eyebrow="Leaderboard"
           title="LIT"
-          accent="부원 순위"
-          desc="실시간 조회수 달성 현황과 부원 순위입니다. 부원을 클릭하면 상세 프로필을 확인할 수 있습니다."
+          accent="리더보드"
+          desc="부원별 실시간 달성 조회수와 리더보드입니다. 부원을 클릭하면 상세 프로필을 확인할 수 있습니다."
         />
 
         {/* 관리자 모드 안내 및 빠른 부원 등록 */}
