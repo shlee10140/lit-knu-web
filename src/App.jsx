@@ -9,12 +9,14 @@ import Nav from './components/Nav.jsx'
 import Hero from './components/Hero.jsx'
 import ChallengeHUD from './components/ChallengeHUD.jsx'
 import Leaderboard from './components/Leaderboard.jsx'
+import Milestones from './components/Milestones.jsx'
 import ArticleHub from './components/ArticleHub.jsx'
 import Missions from './components/Missions.jsx'
 import Faq from './components/Faq.jsx'
 import Footer from './components/Footer.jsx'
 
 import AuthModal from './components/AuthModal.jsx'
+import MemberProfileModal from './components/MemberProfileModal.jsx'
 import ProfileModal from './components/ProfileModal.jsx'
 import { storageService } from './services/storageService.js'
 
@@ -22,8 +24,15 @@ export default function App() {
   const [ready, setReady] = useState(false)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [authTab, setAuthTab] = useState('login')
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [profileTarget, setProfileTarget] = useState(null)
+
+  // 부원 프로필 상세 뷰 모달
+  const [isProfileViewOpen, setIsProfileViewOpen] = useState(false)
+  const [profileViewTarget, setProfileViewTarget] = useState(null)
+
+  // 프로필 수정 모달
+  const [isProfileEditOpen, setIsProfileEditOpen] = useState(false)
+  const [profileEditTarget, setProfileEditTarget] = useState(null)
+
   const [authorFilter, setAuthorFilter] = useState(null)
 
   // Lenis smooth scroll
@@ -52,13 +61,23 @@ export default function App() {
   // URL query parameter (?author=... 또는 ?member=...) 감지
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const authorParam = params.get('author') || params.get('member')
+    const authorParam = params.get('author')
+    const memberParam = params.get('member')
+
     if (authorParam) {
       setAuthorFilter(authorParam)
       setTimeout(() => {
         const el = document.getElementById('articles')
         if (el) el.scrollIntoView({ behavior: 'smooth' })
       }, 700)
+    }
+
+    if (memberParam) {
+      const found = storageService.getMember(memberParam)
+      if (found) {
+        setProfileViewTarget(found)
+        setIsProfileViewOpen(true)
+      }
     }
   }, [])
 
@@ -72,23 +91,41 @@ export default function App() {
     setAuthorFilter(null)
   }
 
-  const handleSelectMember = (handle) => {
-    storageService.setCurrentUser(handle)
-  }
-
   const handleOpenAuth = (tab = 'login') => {
     setAuthTab(tab)
     setIsAuthOpen(true)
   }
 
-  const handleOpenProfile = (member = null) => {
-    setProfileTarget(member)
-    setIsProfileOpen(true)
+  // 프로필 상세 뷰 열기
+  const handleOpenProfileView = (member = null) => {
+    const target = member || storageService.getCurrentUser()
+    if (!target) {
+      handleOpenAuth('login')
+      return
+    }
+    setProfileViewTarget(target)
+    setIsProfileViewOpen(true)
   }
 
-  const handleCloseProfile = () => {
-    setIsProfileOpen(false)
-    setProfileTarget(null)
+  const handleCloseProfileView = () => {
+    setIsProfileViewOpen(false)
+    setProfileViewTarget(null)
+  }
+
+  // 프로필 정보 수정 모달 열기
+  const handleOpenProfileEdit = (member = null) => {
+    const target = member || storageService.getCurrentUser()
+    if (!target) {
+      handleOpenAuth('login')
+      return
+    }
+    setProfileEditTarget(target)
+    setIsProfileEditOpen(true)
+  }
+
+  const handleCloseProfileEdit = () => {
+    setIsProfileEditOpen(false)
+    setProfileEditTarget(null)
   }
 
   return (
@@ -100,7 +137,7 @@ export default function App() {
 
       <Nav
         onOpenAuth={() => handleOpenAuth('login')}
-        onOpenProfile={() => handleOpenProfile(null)}
+        onOpenProfile={() => handleOpenProfileView(null)}
       />
 
       <main className="w-full max-w-[100vw] overflow-x-clip">
@@ -108,31 +145,38 @@ export default function App() {
 
         {/* 1. 챌린지 대시보드 */}
         <ChallengeHUD
-          onOpenProfile={() => handleOpenProfile(null)}
+          onOpenProfile={() => handleOpenProfileView(null)}
           onOpenAuth={() => handleOpenAuth('login')}
           onFilterAuthor={handleFilterAuthor}
         />
 
-        {/* 2. 체크포인트 리더보드 & 보상 (관리자 수정 및 부원 등록 연동) */}
+        {/* 2. 부원 순위 리더보드 */}
         <Leaderboard
           onFilterAuthor={handleFilterAuthor}
-          onSelectMember={handleSelectMember}
-          onEditMember={(m) => handleOpenProfile(m)}
+          onSelectMember={handleOpenProfileView}
+          onOpenProfile={handleOpenProfileView}
+          onEditMember={handleOpenProfileEdit}
           onOpenAuth={(tab) => handleOpenAuth(tab)}
         />
 
-        {/* 3. 아티클 & 챌린지 링크 공유 피드 */}
+        {/* 3. 단계별 보상 & 마일스톤 */}
+        <Milestones
+          onOpenAuth={() => handleOpenAuth('login')}
+        />
+
+        {/* 4. 아티클 & 챌린지 링크 공유 피드 */}
         <ArticleHub
           authorFilter={authorFilter}
           onClearAuthorFilter={handleClearAuthorFilter}
           onFilterAuthor={handleFilterAuthor}
           onOpenAuth={() => handleOpenAuth('login')}
+          onOpenProfile={handleOpenProfileView}
         />
 
-        {/* 4. 운영진 공지사항 */}
+        {/* 5. 운영진 공지사항 */}
         <Missions onOpenAuth={() => handleOpenAuth('login')} />
 
-        {/* 5. 챌린지 FAQ */}
+        {/* 6. 챌린지 FAQ */}
         <Faq />
       </main>
 
@@ -144,10 +188,21 @@ export default function App() {
         onClose={() => setIsAuthOpen(false)}
         initialTab={authTab}
       />
+
+      {/* 부원 상세 프로필 뷰 */}
+      <MemberProfileModal
+        isOpen={isProfileViewOpen}
+        onClose={handleCloseProfileView}
+        member={profileViewTarget}
+        onOpenEdit={(m) => handleOpenProfileEdit(m)}
+        onFilterAuthor={handleFilterAuthor}
+      />
+
+      {/* 부원 정보/프로필 수정 폼 */}
       <ProfileModal
-        isOpen={isProfileOpen}
-        onClose={handleCloseProfile}
-        targetMember={profileTarget}
+        isOpen={isProfileEditOpen}
+        onClose={handleCloseProfileEdit}
+        targetMember={profileEditTarget}
       />
     </MotionConfig>
   )

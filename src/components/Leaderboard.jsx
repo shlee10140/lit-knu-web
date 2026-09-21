@@ -16,15 +16,15 @@ import {
 } from 'lucide-react'
 import { storageService } from '../services/storageService.js'
 import { Reveal, SectionHeading } from './ui/Primitives.jsx'
-import MilestonesModal from './MilestonesModal.jsx'
 
-export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMember, onOpenAuth }) {
+export default function Leaderboard({ onFilterAuthor, onSelectMember, onOpenProfile, onEditMember, onOpenAuth }) {
   const [members, setMembers] = useState(storageService.getMembers())
   const [isAdmin, setIsAdmin] = useState(storageService.isAdmin())
   const [milestones, setMilestones] = useState(() => storageService.getMilestones())
-  const [isMilestonesModalOpen, setIsMilestonesModalOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState('all') // 'all', '250', '100', '50', '30'
+  const [activeTab, setActiveTab] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+
+  const handleProfileView = onOpenProfile || onSelectMember
 
   useEffect(() => {
     const unsub = storageService.subscribe(() => {
@@ -66,51 +66,13 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
         <SectionHeading
           eyebrow="Leaderboard"
           title="LIT"
-          accent="리더보드"
-          desc="부원별 달성 조회수와 단계별 보상입니다."
+          accent="부원 순위"
+          desc="실시간 조회수 달성 현황과 부원 순위입니다. 부원을 클릭하면 상세 프로필을 확인할 수 있습니다."
         />
-
-        {/* 1. 체크포인트 단계별 보상 안내 */}
-        <Reveal delay={0.1} className="mt-8">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {milestones.map((ml) => {
-              const achieversCount = members.filter((m) => (m.clicks || 0) >= ml.count).length
-
-              return (
-                <div
-                  key={ml.count}
-                  className="group relative flex items-center gap-3.5 rounded-2xl border border-line bg-surface/50 p-4 transition-all duration-300 hover:scale-[1.01] hover:border-white/30 hover:bg-surface/80"
-                >
-                  {/* Icon badge */}
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-2xl transition-transform group-hover:scale-110">
-                    {ml.icon}
-                  </div>
-
-                  {/* Reward details */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-xs font-black tracking-wide text-mint">
-                        {ml.count} 조회수
-                      </span>
-                      <span className="flex items-center gap-1 font-mono text-[11px] text-muted">
-                        <Users className="h-3 w-3" />
-                        {achieversCount}명 달성
-                      </span>
-                    </div>
-
-                    <h4 className="mt-1 font-display text-sm sm:text-base font-bold leading-snug tracking-tight text-fg group-hover:text-white">
-                      {ml.reward}
-                    </h4>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </Reveal>
 
         {/* 관리자 모드 안내 및 빠른 부원 등록 */}
         {isAdmin && (
-          <Reveal delay={0.12} className="mt-8">
+          <Reveal delay={0.1} className="mt-8">
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-pink/40 bg-pink/10 p-3.5 sm:px-5">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-pink" />
@@ -118,18 +80,10 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                   👑 운영진 관리자 모드 활성
                 </span>
                 <span className="text-xs text-muted hidden md:inline">
-                  · 부원 정보 관리 및 조회수 기준/보상 내용/이모티콘을 실시간으로 설정할 수 있습니다.
+                  · 부원 정보 관리 및 빠른 클릭수 조작(+/-), 프로필 수정을 직접 수행할 수 있습니다.
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsMilestonesModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-fg transition-all hover:bg-white/20 hover:border-white/30"
-                >
-                  <Award className="h-3.5 w-3.5 text-mint" />
-                  보상 & 조회수 기준 관리
-                </button>
                 <button
                   onClick={() => onOpenAuth?.('register')}
                   className="inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-3.5 py-1.5 text-xs font-bold text-bg transition-transform hover:scale-105 shadow-md shadow-pink/20"
@@ -184,7 +138,13 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                   <div className="flex flex-col">
                     {/* 1. 상단: 순위 & 프로필 정보 (좌측) + 실시간 클릭수 (우측) */}
                     <div className="flex items-start justify-between gap-3 sm:items-center">
-                      <div className="flex items-start gap-3 sm:items-center sm:gap-4 min-w-0 flex-1">
+                      <div
+                        onClick={() => handleProfileView?.(m)}
+                        role="button"
+                        tabIndex={0}
+                        title={`${m.name} 부원의 상세 프로필 보기`}
+                        className="flex items-start gap-3 sm:items-center sm:gap-4 min-w-0 flex-1 cursor-pointer group/info"
+                      >
                         {/* Rank badge */}
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-lg font-black tracking-tight sm:h-11 sm:w-11 sm:text-xl">
                           <span className="text-muted font-mono text-sm sm:text-base font-bold">#{rank}</span>
@@ -194,12 +154,12 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                         <img
                           src={m.avatar}
                           alt={m.name}
-                          className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-xl border border-line object-cover mt-0.5 sm:mt-0"
+                          className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-xl border border-line object-cover mt-0.5 sm:mt-0 transition-transform group-hover/info:scale-105"
                         />
 
                         {/* Name & Major (모바일에서도 소개가 잘리지 않고 온전히 표시) */}
                         <div className="min-w-0 flex-1">
-                          <div className="font-display text-base sm:text-lg font-bold text-fg leading-tight">
+                          <div className="font-display text-base sm:text-lg font-bold text-fg leading-tight group-hover/info:text-mint transition-colors">
                             {m.name}
                           </div>
                           <p className="mt-1 text-xs leading-relaxed text-muted line-clamp-2 sm:line-clamp-1 break-words">
@@ -310,6 +270,17 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                           </button>
                         )}
 
+                        {/* 프로필 보기 버튼 */}
+                        <button
+                          type="button"
+                          onClick={() => handleProfileView?.(m)}
+                          title={`${m.name} 부원의 상세 프로필 보기`}
+                          className="glass inline-flex items-center justify-center gap-1 rounded-xl px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-fg whitespace-nowrap shrink-0 transition-all hover:bg-white/10 hover:border-mint/50"
+                        >
+                          <User className="h-3.5 w-3.5 text-mint" />
+                          <span>프로필</span>
+                        </button>
+
                         <button
                           onClick={() => onFilterAuthor(m.handle)}
                           title="이 부원이 작성한 글 모음 보기"
@@ -327,11 +298,6 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
           )}
         </div>
       </div>
-
-      <MilestonesModal
-        isOpen={isMilestonesModalOpen}
-        onClose={() => setIsMilestonesModalOpen(false)}
-      />
     </section>
   )
 }

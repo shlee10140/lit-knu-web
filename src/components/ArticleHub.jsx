@@ -28,7 +28,7 @@ const platformStyles = {
   github: { label: 'GitHub', color: 'bg-white/10 text-fg border-white/20' },
 }
 
-export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilterAuthor, onOpenAuth }) {
+export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilterAuthor, onOpenAuth, onOpenProfile }) {
   const [articles, setArticles] = useState(storageService.getArticles())
   const [members, setMembers] = useState(storageService.getMembers())
   const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
@@ -394,13 +394,18 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
                     <div className="flex items-center justify-between">
                       {/* Author badge */}
                       <button
-                        onClick={() => onFilterAuthor(art.authorHandle)}
-                        className="flex items-center gap-2 group/author text-left"
+                        onClick={() => {
+                          const target = members.find((m) => m.handle?.toLowerCase() === art.authorHandle?.toLowerCase()) || { handle: art.authorHandle, name: art.authorName, avatar: art.authorAvatar }
+                          if (onOpenProfile) onOpenProfile(target)
+                          else onFilterAuthor(art.authorHandle)
+                        }}
+                        className="flex items-center gap-2 group/author text-left cursor-pointer"
+                        title={`${art.authorName} 부원 프로필 보기`}
                       >
                         <img
                           src={art.authorAvatar}
                           alt={art.authorName}
-                          className="h-7 w-7 rounded-lg object-cover border border-line"
+                          className="h-7 w-7 rounded-lg object-cover border border-line transition-transform group-hover/author:scale-105"
                         />
                         <div>
                           <p className="font-display text-xs font-semibold text-fg group-hover/author:text-mint transition-colors">
