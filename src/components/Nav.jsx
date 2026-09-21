@@ -76,7 +76,7 @@ export default function Nav({ onOpenAuth, onOpenProfile }) {
             {currentUser ? (
               <div className="flex items-center gap-1.5">
                 <button
-                  onClick={onOpenProfile}
+                  onClick={() => onOpenProfile?.(currentUser)}
                   title="내 프로필 및 클릭수 수정"
                   className="glass group flex items-center gap-2 rounded-full py-1 pl-1.5 pr-3 text-xs text-fg transition-colors hover:border-pink/40"
                 >

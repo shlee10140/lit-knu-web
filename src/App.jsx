@@ -136,7 +136,7 @@ export default function App() {
 
       <Nav
         onOpenAuth={() => handleOpenAuth('login')}
-        onOpenProfile={() => handleOpenProfileView(null)}
+        onOpenProfile={handleOpenProfileView}
       />
 
       <main className="w-full max-w-[100vw] overflow-x-clip">

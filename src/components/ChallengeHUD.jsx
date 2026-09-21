@@ -6,13 +6,10 @@ import {
   CheckCircle2,
   Copy,
   ExternalLink,
-  Flame,
   Globe,
   Link2,
   Plus,
-  Share2,
   Sparkles,
-  Trophy,
   TrendingUp,
   UserCheck,
   Edit3,
@@ -54,12 +51,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
     return unsub
   }, [])
 
-  // 동아리 전체 종합 통계 계산
   const targetClicks = milestones.length > 0 ? milestones[milestones.length - 1].count : 250
-  const totalClicks = members.reduce((acc, m) => acc + (m.clicks || 0), 0)
-  const finishersCount = members.filter((m) => (m.clicks || 0) >= targetClicks).length
-  const activeMembersCount = members.length
-  const totalArticlesCount = articles.length
 
   // 내 다음 마일스톤 계산
   const myClicks = currentUser ? currentUser.clicks || 0 : 0
@@ -116,75 +108,8 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
           eyebrow="Dashboard"
           title="챌린지"
           accent="대시보드"
-          desc="동아리 전체 현황과 나의 챌린지 진행 상태를 실시간으로 확인하세요."
+          desc="나의 챌린지 진행 상태와 실시간 활동을 확인하세요."
         />
-
-        {/* 1. 동아리 전체 요약 통계 그리드 */}
-        <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 items-stretch">
-          <Reveal delay={0.05} className="h-full">
-            <div className="glass group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:border-pink/40 hover:bg-white/[0.06]">
-              <div>
-                <div className="flex items-center justify-between text-muted">
-                  <span className="text-xs font-medium text-fg/80">전체 클릭</span>
-                  <Flame className="h-4 w-4 text-pink" />
-                </div>
-                <div className="mt-2.5 font-sans text-2xl sm:text-3xl font-extrabold tracking-tight text-fg">
-                  {totalClicks.toLocaleString()}
-                  <span className="ml-1 text-xs font-normal text-muted">회</span>
-                </div>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-pink to-violet opacity-0 transition-opacity group-hover:opacity-100" />
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.1} className="h-full">
-            <div className="glass group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:border-amber/40 hover:bg-white/[0.06]">
-              <div>
-                <div className="flex items-center justify-between text-muted">
-                  <span className="text-xs font-medium text-fg/80">MSA 달성 부원</span>
-                  <Trophy className="h-4 w-4 text-amber" />
-                </div>
-                <div className="mt-2.5 font-sans text-2xl sm:text-3xl font-extrabold tracking-tight text-fg">
-                  {finishersCount}
-                  <span className="ml-1 text-xs font-normal text-muted">명</span>
-                </div>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-amber to-mint opacity-0 transition-opacity group-hover:opacity-100" />
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.15} className="h-full">
-            <div className="glass group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:border-violet/40 hover:bg-white/[0.06]">
-              <div>
-                <div className="flex items-center justify-between text-muted">
-                  <span className="text-xs font-medium text-fg/80">참여 부원</span>
-                  <UserCheck className="h-4 w-4 text-violet" />
-                </div>
-                <div className="mt-2.5 font-sans text-2xl sm:text-3xl font-extrabold tracking-tight text-fg">
-                  {activeMembersCount}
-                  <span className="ml-1 text-xs font-normal text-muted">명</span>
-                </div>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-violet to-mint opacity-0 transition-opacity group-hover:opacity-100" />
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.2} className="h-full">
-            <div className="glass group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:border-mint/40 hover:bg-white/[0.06]">
-              <div>
-                <div className="flex items-center justify-between text-muted">
-                  <span className="text-xs font-medium text-fg/80">공유된 글</span>
-                  <Share2 className="h-4 w-4 text-mint" />
-                </div>
-                <div className="mt-2.5 font-sans text-2xl sm:text-3xl font-extrabold tracking-tight text-fg">
-                  {totalArticlesCount}
-                  <span className="ml-1 text-xs font-normal text-muted">편</span>
-                </div>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-mint to-pink opacity-0 transition-opacity group-hover:opacity-100" />
-            </div>
-          </Reveal>
-        </div>
 
         {/* 2. My Progress Interactive HUD Card or Guest Invitation Card */}
         {!currentUser ? (
