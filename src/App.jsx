@@ -7,7 +7,6 @@ import Cursor from './components/Cursor.jsx'
 import ScrollProgress from './components/ScrollProgress.jsx'
 import Nav from './components/Nav.jsx'
 import Hero from './components/Hero.jsx'
-import ChallengeHUD from './components/ChallengeHUD.jsx'
 import Leaderboard from './components/Leaderboard.jsx'
 import Milestones from './components/Milestones.jsx'
 import ArticleHub from './components/ArticleHub.jsx'
@@ -142,14 +141,7 @@ export default function App() {
       <main className="w-full max-w-[100vw] overflow-x-clip">
         <Hero ready={ready} />
 
-        {/* 1. 챌린지 대시보드 */}
-        <ChallengeHUD
-          onOpenProfile={() => handleOpenProfileView(null)}
-          onOpenAuth={() => handleOpenAuth('login')}
-          onFilterAuthor={handleFilterAuthor}
-        />
-
-        {/* 2. 리더보드 */}
+        {/* 1. 챌린지 대시보드 (리더보드) */}
         <Leaderboard
           onFilterAuthor={handleFilterAuthor}
           onSelectMember={handleOpenProfileView}

@@ -70,14 +70,15 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onOpenProf
 
   return (
     <section id="leaderboard" className="relative scroll-mt-24 px-4 sm:px-6 py-24 sm:py-32 overflow-hidden">
+      <span id="dashboard" className="absolute -top-24" />
       {/* Glow */}
       <div className="pointer-events-none absolute right-1/4 top-1/3 -z-10 h-[500px] w-[500px] rounded-full bg-violet/10 blur-[150px]" />
 
       <div className="mx-auto max-w-6xl">
         <SectionHeading
-          eyebrow="Leaderboard"
-          title="LIT"
-          accent="리더보드"
+          eyebrow="Dashboard"
+          title="챌린지"
+          accent="대시보드"
           desc="부원별 실시간 달성 조회수와 리더보드입니다. 부원을 클릭하면 상세 프로필을 확인할 수 있습니다."
         />
 
