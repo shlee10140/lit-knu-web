@@ -202,7 +202,6 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <SectionHeading
-              eyebrow="Feed"
               title="LIT"
               accent="피드"
               desc="블로그와 LinkedIn에 작성한 글을 공유합니다."

@@ -76,7 +76,6 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onOpenProf
 
       <div className="mx-auto max-w-6xl">
         <SectionHeading
-          eyebrow="Dashboard"
           title="챌린지"
           accent="대시보드"
           desc="부원별 실시간 달성 조회수와 리더보드입니다. 부원을 클릭하면 상세 프로필을 확인할 수 있습니다."

@@ -167,7 +167,6 @@ export default function Faq() {
       <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
         <div>
           <SectionHeading
-            eyebrow="FAQ"
             title="자주 묻는"
             accent="질문"
             desc="LIT 챌린지와 활동에 관해 자주 묻는 질문들을 모았습니다."

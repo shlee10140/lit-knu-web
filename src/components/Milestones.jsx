@@ -32,7 +32,6 @@ export default function Milestones({ onOpenAuth }) {
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <SectionHeading
-            eyebrow="Rewards & Milestones"
             title="단계별"
             accent="보상"
             desc="조회수 마일스톤을 달성할 때마다 특별한 보상과 공식 인증 뱃지를 지급합니다."
@@ -73,14 +72,6 @@ export default function Milestones({ onOpenAuth }) {
                     : 'border-line bg-surface/50 hover:border-white/30 hover:bg-surface/80'
                 }`}
               >
-                {/* Achieved Badge Indicator (Top Right) */}
-                {isAchievedByMe && (
-                  <span className="absolute top-4 right-4 inline-flex items-center gap-1 rounded-full border border-mint/40 bg-mint/15 px-2.5 py-0.5 font-mono text-[10px] font-bold text-mint">
-                    <CheckCircle2 className="h-3 w-3" />
-                    달성 완료!
-                  </span>
-                )}
-
                 <div className="flex items-start gap-4">
                   {/* Icon badge */}
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-3xl shadow-inner transition-transform group-hover:scale-110">
@@ -93,19 +84,23 @@ export default function Milestones({ onOpenAuth }) {
                       <span className="font-mono text-xs font-black tracking-wide text-mint">
                         {ml.count} 조회수
                       </span>
-                      <span className="flex items-center gap-1 font-mono text-[11px] text-muted">
-                        <Users className="h-3 w-3" />
-                        {achieversCount}명 달성
-                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="flex items-center gap-1 font-mono text-[11px] text-muted">
+                          <Users className="h-3 w-3" />
+                          {achieversCount}명 달성
+                        </span>
+                        {isAchievedByMe && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-mint/40 bg-mint/15 px-2 py-0.5 font-mono text-[10px] font-bold text-mint">
+                            <CheckCircle2 className="h-3 w-3" />
+                            달성 완료!
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <h4 className="mt-1.5 font-display text-base sm:text-lg font-bold leading-snug tracking-tight text-fg group-hover:text-white">
                       {ml.reward}
                     </h4>
-
-                    <p className="mt-1 font-mono text-[11px] text-muted">
-                      뱃지 획득: <span className="text-fg/80">{ml.badge || ml.title}</span>
-                    </p>
                   </div>
                 </div>
               </motion.div>
