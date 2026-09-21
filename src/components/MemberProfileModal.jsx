@@ -133,6 +133,11 @@ export default function MemberProfileModal({
   const [copiedLink, setCopiedLink] = useState(false)
   const [justAdded, setJustAdded] = useState(null)
 
+  // 프로필 링크 관리 상태
+  const [isEditingLinks, setIsEditingLinks] = useState(false)
+  const [editableLinks, setEditableLinks] = useState([])
+  const [isSavingLinks, setIsSavingLinks] = useState(false)
+
   // MS Learn Contributor URL 생성기 상태
   const [isUrlGenOpen, setIsUrlGenOpen] = useState(false)
   const [inputLearnUrl, setInputLearnUrl] = useState('')
@@ -153,6 +158,13 @@ export default function MemberProfileModal({
     })
     return unsub
   }, [])
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsEditingLinks(false)
+      setIsUrlGenOpen(false)
+    }
+  }, [isOpen, member])
 
   if (!isOpen || !member) return null
 
@@ -203,11 +215,6 @@ export default function MemberProfileModal({
     }
     return legacy
   })()
-
-  // 프로필 링크 관리 상태 & 핸들러
-  const [isEditingLinks, setIsEditingLinks] = useState(false)
-  const [editableLinks, setEditableLinks] = useState([])
-  const [isSavingLinks, setIsSavingLinks] = useState(false)
 
   const handleOpenLinkEdit = () => {
     const list = prLinks.map((l) => ({
