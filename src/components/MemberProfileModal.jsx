@@ -461,10 +461,6 @@ export default function MemberProfileModal({
             {/* Editing Mode */}
             {isEditingLinks ? (
               <div className="space-y-3">
-                <p className="text-[11px] text-muted font-mono">
-                  URL을 붙여넣으면 플랫폼 종류(LinkedIn, GitHub, 블로그, Notion 등)를 자동으로 인식합니다.
-                </p>
-
                 {/* Quick Presets */}
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
                   <span className="font-mono text-[10px] text-muted mr-0.5">빠른 추가:</span>
