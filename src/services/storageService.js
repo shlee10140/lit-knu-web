@@ -87,6 +87,11 @@ export const ADMIN_MEMBER = {
   clicks: 250,
   target: 250,
   msLink: 'https://learn.microsoft.com/?wt.mc_id=studentamb_482865',
+  links: [
+    { id: 'lit-1', title: 'LIT 공식 LinkedIn', url: 'https://linkedin.com/in/lit-knu' },
+    { id: 'lit-2', title: 'LIT 기술 블로그', url: 'https://velog.io/@lit-official' },
+    { id: 'lit-3', title: 'GitHub Organization', url: 'https://github.com/LITofficial' },
+  ],
   socials: {
     linkedin: 'https://linkedin.com/in/lit-knu',
     blog: 'https://velog.io/@lit-official',
@@ -774,6 +779,7 @@ export const storageService = {
         blog: (newMember.blog || '').trim(),
         github: (newMember.github || '').trim(),
       },
+      links: Array.isArray(newMember.links) ? newMember.links : [],
       bio: (newMember.bio || '').trim(),
       avatar:
         newMember.avatar ||

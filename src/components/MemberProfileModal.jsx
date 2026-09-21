@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   AlertCircle,
   ArrowRight,
+  ArrowUpRight,
   Award,
   BookOpen,
   ChevronRight,
@@ -10,9 +11,12 @@ import {
   Check,
   Edit3,
   ExternalLink,
+  FileText,
   Flame,
+  Github,
   Globe,
   Link2,
+  Linkedin,
   Lock,
   Plus,
   Share2,
@@ -29,6 +33,51 @@ import {
   formatContributorLink,
   validateAndGenerateContributorUrl,
 } from '../services/storageService.js'
+
+function getLinkIcon(link) {
+  const url = (link?.url || '').toLowerCase()
+  const title = (link?.title || '').toLowerCase()
+
+  if (url.includes('github.com') || title.includes('github') || title.includes('깃허브')) {
+    return <Github className="h-4 w-4 text-fg" />
+  }
+  if (url.includes('linkedin.com') || title.includes('linkedin') || title.includes('링크드인')) {
+    return <Linkedin className="h-4 w-4 text-[#0A66C2]" />
+  }
+  if (
+    url.includes('velog.io') ||
+    url.includes('tistory.com') ||
+    url.includes('medium.com') ||
+    title.includes('블로그') ||
+    title.includes('blog')
+  ) {
+    return <BookOpen className="h-4 w-4 text-mint" />
+  }
+  if (
+    url.includes('notion.so') ||
+    url.includes('notion.site') ||
+    title.includes('notion') ||
+    title.includes('노션') ||
+    title.includes('이력서') ||
+    title.includes('resume')
+  ) {
+    return <FileText className="h-4 w-4 text-amber" />
+  }
+  if (title.includes('포트폴리오') || title.includes('portfolio')) {
+    return <Sparkles className="h-4 w-4 text-pink" />
+  }
+  return <Link2 className="h-4 w-4 text-mint" />
+}
+
+function getDisplayUrl(rawUrl) {
+  if (!rawUrl) return ''
+  try {
+    const parsed = new URL(rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`)
+    return parsed.hostname.replace(/^www\./, '') + (parsed.pathname !== '/' ? parsed.pathname : '')
+  } catch (e) {
+    return rawUrl.replace(/^https?:\/\/(www\.)?/, '')
+  }
+}
 
 export default function MemberProfileModal({
   isOpen,
@@ -91,11 +140,29 @@ export default function MemberProfileModal({
   const generatedUrl = urlValidation.isValid ? urlValidation.url : ''
   const urlError = urlValidation.error
 
-  // 소셜 및 외부 링크 정리
-  const socialEntries = Object.entries(currentMember.socials || {}).filter(
-    ([, url]) => url && typeof url === 'string' && url.trim().length > 0
-  )
-  const customLinks = Array.isArray(currentMember.links) ? currentMember.links.filter((l) => l.url) : []
+  // PR 및 외부 링크 정리 (Linktree)
+  const prLinks = (() => {
+    if (Array.isArray(currentMember.links) && currentMember.links.length > 0) {
+      return currentMember.links
+        .filter((l) => l && l.url && l.url.trim())
+        .map((l, i) => ({
+          id: l.id || `pr-${i}`,
+          title: l.title || l.name || l.platform || '링크',
+          url: l.url.trim(),
+        }))
+    }
+    const legacy = []
+    if (currentMember.socials?.linkedin) {
+      legacy.push({ id: 's-linkedin', title: 'LinkedIn', url: currentMember.socials.linkedin })
+    }
+    if (currentMember.socials?.github) {
+      legacy.push({ id: 's-github', title: 'GitHub', url: currentMember.socials.github })
+    }
+    if (currentMember.socials?.blog) {
+      legacy.push({ id: 's-blog', title: '기술 블로그', url: currentMember.socials.blog })
+    }
+    return legacy
+  })()
 
   const handleCopyContributorUrl = () => {
     const link = currentMember.msLink || (memberContributorId ? formatContributorLink(memberContributorId) : '')
@@ -209,41 +276,93 @@ export default function MemberProfileModal({
                 {currentMember.bio || '아직 작성된 한줄 소개가 없습니다.'}
               </p>
             </div>
+          </div>
+        </div>
 
-            {/* Social & Custom External Links */}
-            {(socialEntries.length > 0 || customLinks.length > 0) && (
-              <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
-                {socialEntries.map(([platform, url]) => {
-                  const href = url.startsWith('http') ? url : `https://${url}`
+        {/* Linktree PR & Portfolio Links (Image 4 position) */}
+        {(prLinks.length > 0 || canEdit) && (
+          <div className="mt-6 rounded-2xl border border-line/80 bg-surface/70 p-4 sm:p-5">
+            <div className="flex items-center justify-between mb-3.5">
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-mint/15 text-mint">
+                  <Link2 className="h-3.5 w-3.5" />
+                </span>
+                <h3 className="font-mono text-xs uppercase tracking-wider text-muted font-bold">
+                  PR & 포트폴리오 링크
+                </h3>
+                {prLinks.length > 0 && (
+                  <span className="rounded-full bg-white/[0.06] border border-line/60 px-2 py-0.5 font-mono text-[10px] text-muted font-medium">
+                    {prLinks.length}
+                  </span>
+                )}
+              </div>
+
+              {canEdit && onOpenEdit && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose()
+                    onOpenEdit(currentMember)
+                  }}
+                  className="inline-flex items-center gap-1 font-mono text-[11px] text-mint hover:underline transition-colors"
+                >
+                  <Plus className="h-3 w-3" />
+                  <span>링크 관리</span>
+                </button>
+              )}
+            </div>
+
+            {prLinks.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {prLinks.map((link, idx) => {
+                  const href = link.url.startsWith('http') ? link.url : `https://${link.url}`
                   return (
                     <a
-                      key={platform}
+                      key={link.id || idx}
                       href={href}
                       target="_blank"
-                      rel="noreferrer"
-                      className="glass inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-fg/80 transition-all hover:text-pink hover:border-pink/50"
+                      rel="noopener noreferrer"
+                      className="group relative flex items-center justify-between rounded-xl border border-line/60 bg-white/[0.03] p-3 sm:px-3.5 sm:py-3 transition-all duration-200 hover:border-mint/50 hover:bg-white/[0.07] hover:scale-[1.01] hover:shadow-lg shadow-sm"
                     >
-                      <Globe className="h-3 w-3 text-pink" />
-                      <span className="capitalize">{platform}</span>
+                      <div className="flex items-center gap-3 min-w-0 pr-2">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line/50 bg-white/[0.03] transition-colors group-hover:border-mint/30 group-hover:bg-mint/10">
+                          {getLinkIcon(link)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-xs sm:text-sm text-fg transition-colors group-hover:text-mint truncate">
+                            {link.title || '링크'}
+                          </p>
+                          <p className="font-mono text-[10px] sm:text-[11px] text-muted truncate">
+                            {getDisplayUrl(link.url)}
+                          </p>
+                        </div>
+                      </div>
+                      <ArrowUpRight className="h-4 w-4 shrink-0 text-muted transition-all duration-200 group-hover:text-mint group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </a>
                   )
                 })}
-                {customLinks.map((link, idx) => (
-                  <a
-                    key={idx}
-                    href={link.url?.startsWith('http') ? link.url : `https://${link.url}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="glass inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-fg/80 transition-all hover:text-mint hover:border-mint/50"
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-5 text-center rounded-xl border border-dashed border-line/60 bg-white/[0.01]">
+                <Link2 className="h-6 w-6 text-muted/40 mb-1.5" />
+                <p className="text-xs text-muted">등록된 PR 및 포트폴리오 링크가 없습니다.</p>
+                {canEdit && onOpenEdit && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose()
+                      onOpenEdit(currentMember)
+                    }}
+                    className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl border border-mint/40 bg-mint/10 px-3.5 py-1.5 text-xs font-semibold text-mint hover:bg-mint/20 transition-all shadow-sm"
                   >
-                    <ExternalLink className="h-3 w-3 text-mint" />
-                    <span>{link.name || link.platform || '링크'}</span>
-                  </a>
-                ))}
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>나만의 PR 링크 추가하기</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
-        </div>
+        )}
 
         {/* Progress Bar & Milestones */}
         <div className="mt-6 rounded-2xl border border-line/80 bg-surface/70 p-4 sm:p-5">
