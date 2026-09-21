@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Award, CheckCircle2, Gift, ShieldCheck, Sparkles, Trophy, Users } from 'lucide-react'
+import { Award, Gift, ShieldCheck, Sparkles, Trophy, Users } from 'lucide-react'
 import { storageService } from '../services/storageService.js'
 import { Reveal, SectionHeading } from './ui/Primitives.jsx'
 import MilestonesModal from './MilestonesModal.jsx'
@@ -72,6 +72,7 @@ export default function Milestones({ onOpenAuth }) {
                     : 'border-line bg-surface/50 hover:border-white/30 hover:bg-surface/80'
                 }`}
               >
+
                 <div className="flex items-start gap-4">
                   {/* Icon badge */}
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-3xl shadow-inner transition-transform group-hover:scale-110">
@@ -80,27 +81,21 @@ export default function Milestones({ onOpenAuth }) {
 
                   {/* Details */}
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-xs font-black tracking-wide text-mint">
-                        {ml.count} 조회수
-                      </span>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="flex items-center gap-1 font-mono text-[11px] text-muted">
-                          <Users className="h-3 w-3" />
-                          {achieversCount}명 달성
-                        </span>
-                        {isAchievedByMe && (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-mint/40 bg-mint/15 px-2 py-0.5 font-mono text-[10px] font-bold text-mint">
-                            <CheckCircle2 className="h-3 w-3" />
-                            달성 완료!
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                    <span className="font-mono text-xs font-black tracking-wide text-mint">
+                      {ml.count} 조회수
+                    </span>
 
                     <h4 className="mt-1.5 font-display text-base sm:text-lg font-bold leading-snug tracking-tight text-fg group-hover:text-white">
                       {ml.reward}
                     </h4>
+
+                    {/* 우측 하단 n명 달성 카운트 */}
+                    <div className="mt-3 flex items-center justify-end">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-white/[0.03] border border-line/40 px-2 py-0.5 font-mono text-[11px] text-muted">
+                        <Users className="h-3 w-3" />
+                        {achieversCount}명 달성
+                      </span>
+                    </div>
                   </div>
                 </div>
               </motion.div>
