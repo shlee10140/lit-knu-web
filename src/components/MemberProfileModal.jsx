@@ -146,14 +146,7 @@ export default function MemberProfileModal({
         className="modal-panel relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-line bg-surface/95 p-6 sm:p-8 shadow-2xl backdrop-blur-2xl"
       >
         {/* Top bar */}
-        <div className="flex items-center justify-between border-b border-line/60 pb-4">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-2.5 w-2.5 rounded-full bg-mint shadow-[0_0_8px_#5ef0d6]" />
-            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
-              {isOwner ? '내 프로필' : '부원 상세 프로필'}
-            </span>
-          </div>
-
+        <div className="flex items-center justify-end border-b border-line/60 pb-4">
           <div className="flex items-center gap-2">
             {canEdit && onOpenEdit && (
               <button
@@ -198,11 +191,6 @@ export default function MemberProfileModal({
                 {currentMember.name}
               </h2>
               <span className="font-mono text-xs text-mint">@{currentMember.handle}</span>
-              {memberContributorId && (
-                <span className="font-mono text-[11px] text-muted bg-white/[0.04] border border-line px-2 py-0.5 rounded-md">
-                  ID: {memberContributorId}
-                </span>
-              )}
               {(currentMember.handle === 'LIT' || currentMember.role?.includes('회장') || currentMember.role?.includes('운영진')) && (
                 <span className="inline-flex items-center gap-1 rounded-md border border-pink/40 bg-pink/15 px-2 py-0.5 font-mono text-[10px] font-bold text-pink">
                   <ShieldCheck className="h-3 w-3" />
@@ -232,21 +220,20 @@ export default function MemberProfileModal({
                       key={platform}
                       href={href}
                       target="_blank"
-                      rel="noopener noreferrer"
-                      className="glass inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-fg/80 transition-all hover:text-mint hover:border-mint/50"
+                      rel="noreferrer"
+                      className="glass inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-fg/80 transition-all hover:text-pink hover:border-pink/50"
                     >
-                      <Globe className="h-3 w-3 text-muted" />
+                      <Globe className="h-3 w-3 text-pink" />
                       <span className="capitalize">{platform}</span>
-                      <ExternalLink className="h-2.5 w-2.5 text-muted" />
                     </a>
                   )
                 })}
                 {customLinks.map((link, idx) => (
                   <a
                     key={idx}
-                    href={link.url}
+                    href={link.url?.startsWith('http') ? link.url : `https://${link.url}`}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noreferrer"
                     className="glass inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-fg/80 transition-all hover:text-mint hover:border-mint/50"
                   >
                     <ExternalLink className="h-3 w-3 text-mint" />
@@ -258,44 +245,8 @@ export default function MemberProfileModal({
           </div>
         </div>
 
-        {/* 4 Metrics Grid */}
-        <div className="mt-7 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
-          <div className="rounded-2xl border border-line/80 bg-white/[0.03] p-3.5 sm:p-4">
-            <span className="font-mono text-[10px] uppercase text-muted">현재 조회수</span>
-            <div className="mt-1 flex items-baseline gap-1">
-              <span className="font-sans text-2xl sm:text-3xl font-black text-fg">{clicks}</span>
-              <span className="font-mono text-[11px] text-muted">/ {targetClicks}</span>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-line/80 bg-white/[0.03] p-3.5 sm:p-4">
-            <span className="font-mono text-[10px] uppercase text-muted">목표 달성률</span>
-            <div className="mt-1 flex items-baseline gap-1">
-              <span className="font-sans text-2xl sm:text-3xl font-black text-mint">{progressPercent}%</span>
-              {isFinished && <span className="text-xs">👑</span>}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-line/80 bg-white/[0.03] p-3.5 sm:p-4">
-            <span className="font-mono text-[10px] uppercase text-muted">달성 배지</span>
-            <div className="mt-1 flex items-baseline gap-1">
-              <span className="font-sans text-2xl sm:text-3xl font-black text-pink">
-                {currentMember.badges?.length || 0}
-              </span>
-              <span className="font-mono text-[11px] text-muted">개</span>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-line/80 bg-white/[0.03] p-3.5 sm:p-4">
-            <span className="font-mono text-[10px] uppercase text-muted">보유 자격증</span>
-            <div className="mt-1 truncate font-display text-sm sm:text-base font-bold text-cyan" title={currentMember.certifications || '도전 중'}>
-              {currentMember.certifications || '도전 중'}
-            </div>
-          </div>
-        </div>
-
-        {/* Progress Bar & Milestones with Tick Marks (Image 4) */}
-        <div className="mt-5 rounded-2xl border border-line/80 bg-surface/70 p-4 sm:p-5">
+        {/* Progress Bar & Milestones */}
+        <div className="mt-6 rounded-2xl border border-line/80 bg-surface/70 p-4 sm:p-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex flex-wrap items-baseline gap-2">
               <div className="relative inline-flex items-baseline">
@@ -334,9 +285,8 @@ export default function MemberProfileModal({
                     key={num}
                     type="button"
                     onClick={() => handleQuickAdd(num)}
-                    className="glass group flex h-8 items-center gap-1 rounded-xl px-2.5 sm:px-3 text-xs font-semibold text-fg transition-all active:scale-95 hover:border-pink/50 hover:bg-pink/15 shrink-0"
+                    className="glass flex h-8 items-center rounded-xl px-2.5 sm:px-3 font-mono text-xs font-semibold text-fg transition-all active:scale-95 hover:border-pink/50 hover:bg-pink/15 shrink-0"
                   >
-                    <Plus className="h-3 w-3 text-pink group-hover:scale-125 transition-transform" />
                     +{num}
                   </button>
                 ))}
@@ -357,7 +307,7 @@ export default function MemberProfileModal({
           </div>
 
           {/* Animated Progress Bar with Milestone Pins */}
-          <div className="mt-4 relative h-3.5 w-full overflow-hidden rounded-full bg-white/[0.06] p-0.5">
+          <div className="mt-4 relative h-3 w-full overflow-hidden rounded-full bg-white/[0.06] p-0.5">
             <motion.div
               className="h-full rounded-full bg-[linear-gradient(90deg,var(--color-pink),var(--color-violet),var(--color-mint))]"
               initial={{ width: 0 }}
@@ -372,12 +322,12 @@ export default function MemberProfileModal({
                 <div
                   key={ml.count}
                   style={{ left: `${pos}%` }}
-                  className="absolute top-0 -translate-x-1/2 h-full flex items-center pointer-events-none"
+                  className="absolute top-0 -translate-x-1/2 h-full flex items-center pointer-events-none z-10"
                   title={`${ml.title} (${ml.count} 조회수)`}
                 >
                   <div
-                    className={`h-4 w-1 rounded-full ${
-                      achieved ? 'bg-white shadow-[0_0_8px_#5ef0d6]' : 'bg-white/20'
+                    className={`h-full w-[1.5px] rounded-full ${
+                      achieved ? 'bg-surface/80' : 'bg-white/20'
                     }`}
                   />
                 </div>
@@ -386,9 +336,9 @@ export default function MemberProfileModal({
           </div>
 
           {/* Milestone numbers underneath positioned at exact matching percentages */}
-          <div className="relative mt-2.5 h-5 w-full font-mono text-[10px] text-muted select-none">
+          <div className="relative mt-2 h-4 w-full font-mono text-[10px] text-muted select-none">
             {/* 0 Start */}
-            <span className="absolute left-0 top-0 text-muted/70">0</span>
+            <span className="absolute left-0 top-0 text-muted/60">0</span>
 
             {milestones.map((ml, idx) => {
               const pos = (ml.count / targetClicks) * 100
@@ -403,33 +353,12 @@ export default function MemberProfileModal({
                     isLast
                       ? '-translate-x-full pr-0.5 text-right'
                       : '-translate-x-1/2 text-center'
-                  } ${achieved ? 'text-fg font-semibold' : 'text-muted/70'}`}
+                  } ${achieved ? 'text-fg font-semibold' : 'text-muted/60'}`}
                 >
                   <span className={isLast ? 'text-amber font-bold' : ''}>
                     {ml.count}
                   </span>
                 </div>
-              )
-            })}
-          </div>
-
-          {/* Achieved Milestones Badges List */}
-          <div className="mt-3.5 flex flex-wrap gap-1.5 pt-2 border-t border-line/40">
-            {milestones.map((ml) => {
-              const achieved = clicks >= ml.count
-              return (
-                <span
-                  key={ml.count}
-                  className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 font-mono text-[10px] font-semibold transition-all ${
-                    achieved
-                      ? 'border border-white/20 bg-white/10 text-fg shadow-sm'
-                      : 'border border-line/40 bg-white/[0.02] text-muted/50'
-                  }`}
-                >
-                  <span>{ml.icon}</span>
-                  <span>{ml.title}</span>
-                  {achieved && <Check className="h-2.5 w-2.5 text-mint ml-0.5" />}
-                </span>
               )
             })}
           </div>

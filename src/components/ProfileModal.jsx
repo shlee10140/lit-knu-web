@@ -315,27 +315,6 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
               placeholder="예: AI-900, AZ-900, DP-900"
               className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
             />
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <span className="font-mono text-[9px] text-muted mr-1">빠른 선택:</span>
-              {['AI-900', 'AZ-900', 'DP-900', 'SC-900'].map((cert) => (
-                <button
-                  key={cert}
-                  type="button"
-                  onClick={() => {
-                    const current = formData.certifications
-                      ? formData.certifications.split(',').map((s) => s.trim()).filter(Boolean)
-                      : []
-                    if (!current.includes(cert)) {
-                      current.push(cert)
-                      setFormData({ ...formData, certifications: current.join(', ') })
-                    }
-                  }}
-                  className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] text-muted hover:border-cyan/40 hover:text-cyan hover:bg-cyan/10 transition-colors"
-                >
-                  +{cert}
-                </button>
-              ))}
-            </div>
           </div>
 
           <div>
