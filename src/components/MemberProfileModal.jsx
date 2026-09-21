@@ -463,7 +463,6 @@ export default function MemberProfileModal({
               <div className="space-y-3">
                 {/* Quick Presets */}
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  <span className="font-mono text-[10px] text-muted mr-0.5">빠른 추가:</span>
                   {[
                     { label: 'LinkedIn', url: 'https://linkedin.com/in/' },
                     { label: 'GitHub', url: 'https://github.com/' },
@@ -540,7 +539,7 @@ export default function MemberProfileModal({
 
                 {editableLinks.length === 0 && (
                   <div className="py-4 text-center text-xs text-muted/60 font-mono">
-                    등록된 링크가 없습니다. 위 빠른 추가 버튼이나 [새 링크]를 눌러 링크를 추가해보세요.
+                    등록된 링크가 없습니다. 위 버튼이나 [새 링크]를 눌러 링크를 추가해보세요.
                   </div>
                 )}
 
