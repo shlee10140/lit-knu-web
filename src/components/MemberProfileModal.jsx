@@ -15,6 +15,7 @@ import {
   Flame,
   Github,
   Globe,
+  Instagram,
   Link2,
   Linkedin,
   Lock,
@@ -22,9 +23,12 @@ import {
   Share2,
   ShieldCheck,
   Sparkles,
+  Trash2,
   Trophy,
+  Twitter,
   User,
   X,
+  Youtube,
 } from 'lucide-react'
 import Modal from './ui/Modal.jsx'
 import {
@@ -34,39 +38,75 @@ import {
   validateAndGenerateContributorUrl,
 } from '../services/storageService.js'
 
-function getLinkIcon(link) {
-  const url = (link?.url || '').toLowerCase()
-  const title = (link?.title || '').toLowerCase()
+export function detectPlatform(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string' || !rawUrl.trim()) {
+    return { platform: 'custom', name: '웹사이트', color: '#5EF0D6', type: 'web' }
+  }
+  const clean = rawUrl.trim().toLowerCase()
 
-  if (url.includes('github.com') || title.includes('github') || title.includes('깃허브')) {
-    return <Github className="h-4 w-4 text-fg" />
+  if (clean.includes('linkedin.com')) {
+    return { platform: 'linkedin', name: 'LinkedIn', color: '#0A66C2', type: 'sns' }
   }
-  if (url.includes('linkedin.com') || title.includes('linkedin') || title.includes('링크드인')) {
-    return <Linkedin className="h-4 w-4 text-[#0A66C2]" />
+  if (clean.includes('github.com')) {
+    return { platform: 'github', name: 'GitHub', color: '#FFFFFF', type: 'code' }
   }
-  if (
-    url.includes('velog.io') ||
-    url.includes('tistory.com') ||
-    url.includes('medium.com') ||
-    title.includes('블로그') ||
-    title.includes('blog')
-  ) {
-    return <BookOpen className="h-4 w-4 text-mint" />
+  if (clean.includes('velog.io')) {
+    return { platform: 'velog', name: 'Velog', color: '#20C997', type: 'blog' }
   }
-  if (
-    url.includes('notion.so') ||
-    url.includes('notion.site') ||
-    title.includes('notion') ||
-    title.includes('노션') ||
-    title.includes('이력서') ||
-    title.includes('resume')
-  ) {
-    return <FileText className="h-4 w-4 text-amber" />
+  if (clean.includes('tistory.com')) {
+    return { platform: 'tistory', name: 'Tistory', color: '#FF5722', type: 'blog' }
   }
-  if (title.includes('포트폴리오') || title.includes('portfolio')) {
-    return <Sparkles className="h-4 w-4 text-pink" />
+  if (clean.includes('notion.so') || clean.includes('notion.site')) {
+    return { platform: 'notion', name: 'Notion', color: '#F59E0B', type: 'doc' }
   }
-  return <Link2 className="h-4 w-4 text-mint" />
+  if (clean.includes('medium.com')) {
+    return { platform: 'medium', name: 'Medium', color: '#FFFFFF', type: 'blog' }
+  }
+  if (clean.includes('youtube.com') || clean.includes('youtu.be')) {
+    return { platform: 'youtube', name: 'YouTube', color: '#FF0000', type: 'video' }
+  }
+  if (clean.includes('instagram.com')) {
+    return { platform: 'instagram', name: 'Instagram', color: '#E1306C', type: 'sns' }
+  }
+  if (clean.includes('twitter.com') || clean.includes('x.com')) {
+    return { platform: 'twitter', name: 'X (Twitter)', color: '#1DA1F2', type: 'sns' }
+  }
+
+  // Fallback: extract domain name
+  try {
+    const u = new URL(clean.startsWith('http') ? clean : `https://${clean}`)
+    const host = u.hostname.replace(/^www\./, '')
+    const domainPart = host.split('.')[0]
+    const capitalized = domainPart.charAt(0).toUpperCase() + domainPart.slice(1)
+    return { platform: 'custom', name: capitalized || '웹사이트', color: '#5EF0D6', type: 'web' }
+  } catch (e) {
+    return { platform: 'custom', name: '웹사이트', color: '#5EF0D6', type: 'web' }
+  }
+}
+
+export function renderPlatformIcon(platform, className = 'h-4 w-4') {
+  switch (platform) {
+    case 'linkedin':
+      return <Linkedin className={`${className} text-[#0A66C2]`} />
+    case 'github':
+      return <Github className={`${className} text-fg`} />
+    case 'velog':
+      return <BookOpen className={`${className} text-[#20C997]`} />
+    case 'tistory':
+      return <BookOpen className={`${className} text-[#FF5722]`} />
+    case 'medium':
+      return <BookOpen className={`${className} text-fg`} />
+    case 'notion':
+      return <FileText className={`${className} text-[#F59E0B]`} />
+    case 'youtube':
+      return <Youtube className={`${className} text-[#FF0000]`} />
+    case 'instagram':
+      return <Instagram className={`${className} text-[#E1306C]`} />
+    case 'twitter':
+      return <Twitter className={`${className} text-[#1DA1F2]`} />
+    default:
+      return <Globe className={`${className} text-mint`} />
+  }
 }
 
 function getDisplayUrl(rawUrl) {
@@ -163,6 +203,97 @@ export default function MemberProfileModal({
     }
     return legacy
   })()
+
+  // 프로필 링크 관리 상태 & 핸들러
+  const [isEditingLinks, setIsEditingLinks] = useState(false)
+  const [editableLinks, setEditableLinks] = useState([])
+  const [isSavingLinks, setIsSavingLinks] = useState(false)
+
+  const handleOpenLinkEdit = () => {
+    const list = prLinks.map((l) => ({
+      id: l.id || `link-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      title: l.title || '',
+      url: l.url || '',
+    }))
+    if (list.length === 0) {
+      list.push({ id: `link-${Date.now()}`, title: '', url: '' })
+    }
+    setEditableLinks(list)
+    setIsEditingLinks(true)
+  }
+
+  const handleAddNewLink = (defaultTitle = '', defaultUrl = '') => {
+    setEditableLinks((prev) => [
+      ...prev,
+      {
+        id: `link-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        title: defaultTitle,
+        url: defaultUrl,
+      },
+    ])
+  }
+
+  const handleLinkUrlChange = (idx, newUrl) => {
+    setEditableLinks((prev) => {
+      const updated = [...prev]
+      const detected = detectPlatform(newUrl)
+      const currentItem = updated[idx]
+      const prevDetected = detectPlatform(currentItem.url)
+      const titleWasEmptyOrAuto =
+        !currentItem.title ||
+        currentItem.title === prevDetected.name ||
+        currentItem.isAutoTitle
+
+      updated[idx] = {
+        ...currentItem,
+        url: newUrl,
+        title: titleWasEmptyOrAuto && newUrl ? detected.name : currentItem.title,
+        isAutoTitle: titleWasEmptyOrAuto && !!newUrl,
+      }
+      return updated
+    })
+  }
+
+  const handleLinkTitleChange = (idx, newTitle) => {
+    setEditableLinks((prev) => {
+      const updated = [...prev]
+      updated[idx] = {
+        ...updated[idx],
+        title: newTitle,
+        isAutoTitle: false,
+      }
+      return updated
+    })
+  }
+
+  const handleRemoveLinkRow = (idx) => {
+    setEditableLinks((prev) => prev.filter((_, i) => i !== idx))
+  }
+
+  const handleSaveLinks = async () => {
+    setIsSavingLinks(true)
+    try {
+      const validLinks = editableLinks
+        .filter((l) => l.url && l.url.trim().length > 0)
+        .map((l) => {
+          const detected = detectPlatform(l.url)
+          return {
+            id: l.id || `link-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            title: (l.title || detected.name || '링크').trim(),
+            url: l.url.trim(),
+          }
+        })
+
+      await storageService.updateMemberProfile(currentMember.handle, {
+        links: validLinks,
+      })
+      setIsEditingLinks(false)
+    } catch (err) {
+      alert(`링크 저장 중 오류가 발생했습니다: ${err.message}`)
+    } finally {
+      setIsSavingLinks(false)
+    }
+  }
 
   const handleCopyContributorUrl = () => {
     const link = currentMember.msLink || (memberContributorId ? formatContributorLink(memberContributorId) : '')
@@ -279,7 +410,7 @@ export default function MemberProfileModal({
           </div>
         </div>
 
-        {/* Linktree PR & Portfolio Links (Image 4 position) */}
+        {/* Profile Links Section (프로필 링크) */}
         {(prLinks.length > 0 || canEdit) && (
           <div className="mt-6 rounded-2xl border border-line/80 bg-surface/70 p-4 sm:p-5">
             <div className="flex items-center justify-between mb-3.5">
@@ -288,33 +419,152 @@ export default function MemberProfileModal({
                   <Link2 className="h-3.5 w-3.5" />
                 </span>
                 <h3 className="font-mono text-xs uppercase tracking-wider text-muted font-bold">
-                  PR & 포트폴리오 링크
+                  {isEditingLinks ? '프로필 링크 관리' : '프로필 링크'}
                 </h3>
-                {prLinks.length > 0 && (
+                {!isEditingLinks && prLinks.length > 0 && (
                   <span className="rounded-full bg-white/[0.06] border border-line/60 px-2 py-0.5 font-mono text-[10px] text-muted font-medium">
                     {prLinks.length}
                   </span>
                 )}
               </div>
 
-              {canEdit && onOpenEdit && (
+              {canEdit && !isEditingLinks && (
                 <button
                   type="button"
-                  onClick={() => {
-                    onClose()
-                    onOpenEdit(currentMember)
-                  }}
-                  className="inline-flex items-center gap-1 font-mono text-[11px] text-mint hover:underline transition-colors"
+                  onClick={handleOpenLinkEdit}
+                  className="glass inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[11px] font-semibold text-mint hover:bg-mint/15 hover:border-mint/50 transition-all shadow-sm"
+                >
+                  <Edit3 className="h-3 w-3" />
+                  <span>링크 관리</span>
+                </button>
+              )}
+
+              {canEdit && isEditingLinks && (
+                <button
+                  type="button"
+                  onClick={() => handleAddNewLink()}
+                  className="inline-flex items-center gap-1 rounded-lg border border-mint/40 bg-mint/15 px-2.5 py-1 font-mono text-xs font-semibold text-mint hover:bg-mint/25 transition-all shadow-sm"
                 >
                   <Plus className="h-3 w-3" />
-                  <span>링크 관리</span>
+                  <span>새 링크</span>
                 </button>
               )}
             </div>
 
-            {prLinks.length > 0 ? (
+            {/* Editing Mode */}
+            {isEditingLinks ? (
+              <div className="space-y-3">
+                <p className="text-[11px] text-muted font-mono">
+                  URL을 붙여넣으면 플랫폼 종류(LinkedIn, GitHub, 블로그, Notion 등)를 자동으로 인식합니다.
+                </p>
+
+                {/* Quick Presets */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="font-mono text-[10px] text-muted mr-0.5">빠른 추가:</span>
+                  {[
+                    { label: 'LinkedIn', url: 'https://linkedin.com/in/' },
+                    { label: 'GitHub', url: 'https://github.com/' },
+                    { label: 'Velog', url: 'https://velog.io/@' },
+                    { label: 'Notion', url: 'https://notion.so/' },
+                    { label: '포트폴리오', url: '' },
+                  ].map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => handleAddNewLink(preset.label, preset.url)}
+                      className="rounded-lg border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] text-muted hover:border-mint/40 hover:text-mint hover:bg-mint/10 transition-colors"
+                    >
+                      +{preset.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-2.5 mt-2">
+                  {editableLinks.map((link, idx) => {
+                    const detected = detectPlatform(link.url)
+                    return (
+                      <div
+                        key={link.id || idx}
+                        className="rounded-xl border border-line/70 bg-white/[0.02] p-2.5 sm:p-3 transition-colors hover:border-line"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white/[0.05] border border-line/60 shrink-0">
+                              {renderPlatformIcon(detected.platform, 'h-3.5 w-3.5')}
+                            </span>
+                            <span
+                              className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded border truncate"
+                              style={{
+                                color: detected.color,
+                                borderColor: `${detected.color}40`,
+                                backgroundColor: `${detected.color}15`,
+                              }}
+                            >
+                              {link.url ? `${detected.name} 인식됨` : '플랫폼 자동 인식'}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveLinkRow(idx)}
+                            className="p-1 rounded-lg text-muted hover:text-pink hover:bg-pink/10 transition-colors"
+                            title="링크 삭제"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                          <input
+                            type="text"
+                            value={link.url}
+                            onChange={(e) => handleLinkUrlChange(idx, e.target.value)}
+                            placeholder="링크 URL 붙여넣기 (예: https://...)"
+                            className="glass flex-1 rounded-xl px-3 py-1.5 text-xs text-fg focus:border-mint/50 focus:outline-none min-w-0"
+                          />
+                          <input
+                            type="text"
+                            value={link.title}
+                            onChange={(e) => handleLinkTitleChange(idx, e.target.value)}
+                            placeholder={detected.name || '링크 제목 (선택)'}
+                            className="glass sm:w-36 rounded-xl px-3 py-1.5 text-xs text-fg focus:border-mint/50 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {editableLinks.length === 0 && (
+                  <div className="py-4 text-center text-xs text-muted/60 font-mono">
+                    등록된 링크가 없습니다. 위 빠른 추가 버튼이나 [새 링크]를 눌러 링크를 추가해보세요.
+                  </div>
+                )}
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-line/60">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingLinks(false)}
+                    className="glass rounded-xl px-3.5 py-1.5 text-xs text-muted hover:text-fg transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSavingLinks}
+                    onClick={handleSaveLinks}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-mint px-4 py-1.5 text-xs font-bold text-bg hover:bg-mint/90 transition-all shadow-md shadow-mint/15 active:scale-95 disabled:opacity-50"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                    <span>{isSavingLinks ? '저장 중...' : '저장 완료'}</span>
+                  </button>
+                </div>
+              </div>
+            ) : prLinks.length > 0 ? (
+              /* View Mode with Links */
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {prLinks.map((link, idx) => {
+                  const detected = detectPlatform(link.url)
                   const href = link.url.startsWith('http') ? link.url : `https://${link.url}`
                   return (
                     <a
@@ -326,13 +576,25 @@ export default function MemberProfileModal({
                     >
                       <div className="flex items-center gap-3 min-w-0 pr-2">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line/50 bg-white/[0.03] transition-colors group-hover:border-mint/30 group-hover:bg-mint/10">
-                          {getLinkIcon(link)}
+                          {renderPlatformIcon(detected.platform, 'h-4 w-4')}
                         </div>
                         <div className="min-w-0">
-                          <p className="font-semibold text-xs sm:text-sm text-fg transition-colors group-hover:text-mint truncate">
-                            {link.title || '링크'}
-                          </p>
-                          <p className="font-mono text-[10px] sm:text-[11px] text-muted truncate">
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-semibold text-xs sm:text-sm text-fg transition-colors group-hover:text-mint truncate">
+                              {link.title || detected.name || '링크'}
+                            </p>
+                            <span
+                              className="font-mono text-[9px] px-1 py-0.2 rounded border shrink-0 font-semibold"
+                              style={{
+                                color: detected.color,
+                                borderColor: `${detected.color}30`,
+                                backgroundColor: `${detected.color}10`,
+                              }}
+                            >
+                              {detected.name}
+                            </span>
+                          </div>
+                          <p className="font-mono text-[10px] sm:text-[11px] text-muted truncate mt-0.5">
                             {getDisplayUrl(link.url)}
                           </p>
                         </div>
@@ -343,20 +605,18 @@ export default function MemberProfileModal({
                 })}
               </div>
             ) : (
+              /* View Mode Empty */
               <div className="flex flex-col items-center justify-center py-5 text-center rounded-xl border border-dashed border-line/60 bg-white/[0.01]">
                 <Link2 className="h-6 w-6 text-muted/40 mb-1.5" />
-                <p className="text-xs text-muted">등록된 PR 및 포트폴리오 링크가 없습니다.</p>
-                {canEdit && onOpenEdit && (
+                <p className="text-xs text-muted">등록된 프로필 링크가 없습니다.</p>
+                {canEdit && (
                   <button
                     type="button"
-                    onClick={() => {
-                      onClose()
-                      onOpenEdit(currentMember)
-                    }}
+                    onClick={handleOpenLinkEdit}
                     className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl border border-mint/40 bg-mint/10 px-3.5 py-1.5 text-xs font-semibold text-mint hover:bg-mint/20 transition-all shadow-sm"
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    <span>나만의 PR 링크 추가하기</span>
+                    <span>프로필 링크 추가하기</span>
                   </button>
                 )}
               </div>

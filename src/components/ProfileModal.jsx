@@ -1,7 +1,7 @@
 import Modal from './ui/Modal.jsx'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Camera, Edit3, ExternalLink, Link2, Minus, Plus, Save, Sparkles, Trash2, Upload, User, ShieldCheck, X } from 'lucide-react'
+import { Camera, Edit3, ExternalLink, Minus, Plus, Save, Sparkles, Trash2, Upload, User, ShieldCheck, X } from 'lucide-react'
 import { storageService, extractContributorId, formatContributorLink, AVATAR_PRESETS, compressImage } from '../services/storageService.js'
 
 export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
@@ -19,7 +19,6 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
     contributorId: '',
     bio: '',
     clicks: 0,
-    links: [],
   })
 
   useEffect(() => {
@@ -37,25 +36,6 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
       const user = targetMember || storageService.getCurrentUser()
       setActiveMember(user)
       if (user) {
-        let initialLinks = []
-        if (Array.isArray(user.links) && user.links.length > 0) {
-          initialLinks = user.links.map((l, i) => ({
-            id: l.id || `link-${i}-${Date.now()}`,
-            title: l.title || l.name || l.platform || '',
-            url: l.url || '',
-          }))
-        } else if (user.socials) {
-          if (user.socials.linkedin) {
-            initialLinks.push({ id: `s-ln-${Date.now()}`, title: 'LinkedIn', url: user.socials.linkedin })
-          }
-          if (user.socials.github) {
-            initialLinks.push({ id: `s-gh-${Date.now()}`, title: 'GitHub', url: user.socials.github })
-          }
-          if (user.socials.blog) {
-            initialLinks.push({ id: `s-bl-${Date.now()}`, title: '기술 블로그', url: user.socials.blog })
-          }
-        }
-
         setFormData({
           name: user.name || '',
           role: user.role || '',
@@ -65,7 +45,6 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
           contributorId: user.contributorId || extractContributorId(user.msLink) || '',
           bio: user.bio || '',
           clicks: user.clicks || 0,
-          links: initialLinks,
         })
       }
       setNewPassword('')
@@ -81,42 +60,6 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
       ...prev,
       clicks: Math.max(0, Number(prev.clicks) + delta),
     }))
-  }
-
-  const handleAddLink = () => {
-    setFormData((prev) => ({
-      ...prev,
-      links: [
-        ...(prev.links || []),
-        { id: `link-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, title: '', url: '' },
-      ],
-    }))
-  }
-
-  const handleAddPresetLink = (presetTitle) => {
-    setFormData((prev) => ({
-      ...prev,
-      links: [
-        ...(prev.links || []),
-        { id: `link-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, title: presetTitle, url: '' },
-      ],
-    }))
-  }
-
-  const handleLinkChange = (index, field, value) => {
-    setFormData((prev) => {
-      const updated = [...(prev.links || [])]
-      updated[index] = { ...updated[index], [field]: value }
-      return { ...prev, links: updated }
-    })
-  }
-
-  const handleRemoveLink = (index) => {
-    setFormData((prev) => {
-      const updated = [...(prev.links || [])]
-      updated.splice(index, 1)
-      return { ...prev, links: updated }
-    })
   }
 
   const handleFileUpload = async (e) => {
@@ -147,14 +90,6 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
     e.preventDefault()
     setIsSaving(true)
     try {
-      const filteredLinks = (formData.links || [])
-        .filter((l) => l.url && l.url.trim())
-        .map((l) => ({
-          id: l.id || `link-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          title: (l.title || '링크').trim(),
-          url: l.url.trim(),
-        }))
-
       const updatePayload = {
         name: formData.name.trim(),
         role: formData.role.trim(),
@@ -164,25 +99,6 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
         contributorId: formData.contributorId.trim(),
         bio: formData.bio.trim(),
         clicks: Number(formData.clicks),
-        links: filteredLinks,
-        socials: {
-          linkedin:
-            filteredLinks.find(
-              (l) => l.title.toLowerCase().includes('linkedin') || l.url.includes('linkedin.com')
-            )?.url || '',
-          github:
-            filteredLinks.find(
-              (l) => l.title.toLowerCase().includes('github') || l.url.includes('github.com')
-            )?.url || '',
-          blog:
-            filteredLinks.find(
-              (l) =>
-                l.title.toLowerCase().includes('blog') ||
-                l.title.toLowerCase().includes('블로그') ||
-                l.url.includes('velog.io') ||
-                l.url.includes('tistory.com')
-            )?.url || '',
-        },
       }
 
       if (newPassword.trim()) {
@@ -401,86 +317,6 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
               placeholder="예: studentamb_482865 또는 482865"
               className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
             />
-          </div>
-
-          {/* PR Links (Linktree) Management Section */}
-          <div className="rounded-2xl border border-line bg-white/[0.03] p-3.5">
-            <div className="flex items-center justify-between mb-1.5">
-              <div>
-                <label className="flex items-center gap-1.5 font-mono text-[10px] uppercase text-muted">
-                  <Link2 className="h-3 w-3 text-mint" />
-                  나만의 PR 링크 (Linktree)
-                </label>
-                <p className="text-[11px] text-muted mt-0.5">
-                  포트폴리오, GitHub, LinkedIn, 블로그 등 부원들에게 공유할 링크를 등록하세요.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleAddLink}
-                className="inline-flex items-center gap-1 rounded-lg border border-mint/40 bg-mint/10 px-2.5 py-1 font-mono text-xs font-semibold text-mint hover:bg-mint/20 transition-all shrink-0"
-              >
-                <Plus className="h-3 w-3" />
-                <span>추가</span>
-              </button>
-            </div>
-
-            {/* Quick Presets */}
-            <div className="flex flex-wrap items-center gap-1.5 my-2 pt-2 border-t border-line/40">
-              <span className="font-mono text-[10px] text-muted mr-0.5">빠른 추가:</span>
-              {[
-                { title: '포트폴리오' },
-                { title: 'GitHub' },
-                { title: 'LinkedIn' },
-                { title: '기술 블로그' },
-                { title: 'Notion 이력서' },
-              ].map((preset) => (
-                <button
-                  key={preset.title}
-                  type="button"
-                  onClick={() => handleAddPresetLink(preset.title)}
-                  className="rounded-lg border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] text-muted hover:border-mint/40 hover:text-mint hover:bg-mint/10 transition-colors"
-                >
-                  +{preset.title}
-                </button>
-              ))}
-            </div>
-
-            {/* Link List */}
-            <div className="space-y-2 mt-2.5">
-              {(formData.links || []).map((link, idx) => (
-                <div key={link.id || idx} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={link.title}
-                    onChange={(e) => handleLinkChange(idx, 'title', e.target.value)}
-                    placeholder="링크명 (예: LinkedIn)"
-                    className="glass w-2/5 sm:w-1/3 rounded-xl px-2.5 py-1.5 text-xs text-fg focus:border-pink/50 focus:outline-none shrink-0"
-                  />
-                  <input
-                    type="text"
-                    value={link.url}
-                    onChange={(e) => handleLinkChange(idx, 'url', e.target.value)}
-                    placeholder="URL (https://...)"
-                    className="glass flex-1 rounded-xl px-2.5 py-1.5 text-xs text-fg focus:border-pink/50 focus:outline-none min-w-0"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveLink(idx)}
-                    className="rounded-xl p-1.5 text-muted hover:text-pink hover:bg-pink/10 transition-colors shrink-0"
-                    title="링크 삭제"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-
-              {(!formData.links || formData.links.length === 0) && (
-                <p className="text-center py-2.5 font-mono text-xs text-muted/60">
-                  등록된 PR 링크가 없습니다. 위 빠른 추가 버튼이나 추가 버튼을 눌러보세요.
-                </p>
-              )}
-            </div>
           </div>
 
           <div>
