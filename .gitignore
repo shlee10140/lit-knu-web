@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Generated Vite build
+dist/
+
+# Local operating-system metadata
+.DS_Store
+Thumbs.db
+
+# Source presentation files; these are not used by the website build.
+cardnews/
+
+# Local environment & secret files
+.env
+.env.*
+!.env.example
+local.settings.json
+*.local
+
+# Azure & deployment metadata
+.azure/
+.swa/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and temp files
+.vscode/
+.idea/
+~$*
